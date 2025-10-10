@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "just-better-chainmail:copper_chain"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "just-better-chainmail:copper_chain"
+      }
+    ]
+  }
+}
