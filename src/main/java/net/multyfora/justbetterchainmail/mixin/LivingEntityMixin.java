@@ -9,8 +9,10 @@ import net.minecraft.item.ItemStack;
 
 
 import net.minecraft.item.Items;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.multyfora.justbetterchainmail.item.custom.ModArmorItem;
+import net.multyfora.justbetterchainmail.util.ModCriteria;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -27,6 +29,7 @@ public abstract class LivingEntityMixin {
         // Only handle arrow damage
         if (!isProtectedDamageType(source)) return;
 
+
         int chainmailPieces = countChainmailPieces(player);
 
         // No protection at all
@@ -34,6 +37,9 @@ public abstract class LivingEntityMixin {
 
         // Full set = full immunity
         if (chainmailPieces == 4) {
+            if (source.isOf(DamageTypes.ARROW)) {
+                ModCriteria.NULLIFY_DAMAGE_FROM_ARROW.trigger((ServerPlayerEntity) player);
+            }
             cir.setReturnValue(false);
             cir.cancel();
             return;

@@ -1,0 +1,22 @@
+{
+  "parent": "minecraft:adventure/root",
+  "criteria": {
+    "got_shot_at_wearing_chainmail": {
+      "trigger": "just-better-chainmail:nullify_damage_from_arrow"
+    }
+  },
+  "display": {
+    "description": "get shot at while wearing full chainmail armor",
+    "icon": {
+      "count": 1,
+      "id": "minecraft:arrow"
+    },
+    "title": "Bulletproof"
+  },
+  "requirements": [
+    [
+      "got_shot_at_wearing_chainmail"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
