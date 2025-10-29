@@ -1,71 +1,53 @@
 package net.multyfora.justbetterchainmail.mixin;
 
+import net.minecraft.client.texture.AbstractTexture;
+import net.minecraft.client.texture.DynamicTexture;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.damage.DamageTypes;
 import net.minecraft.item.ItemStack;
-
-
 import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.multyfora.justbetterchainmail.item.custom.ModArmorItem;
 import net.multyfora.justbetterchainmail.util.ModCriteria;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+
+
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
 
+    //this line took more then all the other code combined :)
     @Inject(method = "damage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)Z",
             at = @At("HEAD"), cancellable = true)
     private void onDamage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if (!((Object) this instanceof PlayerEntity player)) return;
 
-        // Only handle arrow damage
-        if (!isProtectedDamageType(source)) return;
-
+        // if its only arrows
+        if (!source.isOf(DamageTypes.ARROW)) return;
 
         int chainmailPieces = countChainmailPieces(player);
+        if (chainmailPieces < 4) return;
 
-        // No protection at all
-        if (chainmailPieces == 0) return;
+        // Trigger advancement
+        ModCriteria.NULLIFY_DAMAGE_FROM_ARROW.trigger((ServerPlayerEntity) player);
 
-        // Full set = full immunity
-        if (chainmailPieces == 4) {
-            if (source.isOf(DamageTypes.ARROW)) {
-                ModCriteria.NULLIFY_DAMAGE_FROM_ARROW.trigger((ServerPlayerEntity) player);
-            }
-            cir.setReturnValue(false);
-            cir.cancel();
-            return;
-        }
-
-//        // Partial set = reduce arrow damage by 25% per piece
-//        float reduction = 0.25F * chainmailPieces;
-//        float reducedDamage = amount * (1.0F - reduction);
-//
-//        // Apply reduced damage manually
-//        LivingEntity self = (LivingEntity) (Object) this;
-//
-//        System.out.println(reducedDamage + ": pieces: " + chainmailPieces);
-//        self.damage(world, source, reducedDamage);
-//
-//        cir.setReturnValue(true);
-//        cir.cancel();
-    }
+        // Prevent all real effects
+        player.timeUntilRegen = 0;
+        player.hurtTime = 0;
+        player.limbAnimator.setSpeed(0.0F);
+        player.setVelocity(0, 0, 0);
 
 
-    private boolean isProtectedDamageType(DamageSource source) {
-        // Covers arrows, cactus, and stalagmites
-        return source.isOf(DamageTypes.ARROW)
-                || source.isOf(DamageTypes.CACTUS)
-                || source.isOf(DamageTypes.STALAGMITE)
-                || source.isOf(DamageTypes.FALLING_STALACTITE);
+        cir.setReturnValue(true);
+        cir.cancel();
     }
 
     private int countChainmailPieces(PlayerEntity player) {
@@ -84,6 +66,5 @@ public abstract class LivingEntityMixin {
                 || stack.getItem() == Items.CHAINMAIL_LEGGINGS
                 || stack.getItem() == Items.CHAINMAIL_CHESTPLATE
                 || stack.getItem() == Items.CHAINMAIL_HELMET);
-
     }
 }
